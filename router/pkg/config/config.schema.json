@@ -772,6 +772,17 @@
       "description": "Enable the JSON log format. The JSON log format is used to log the logs in JSON format. The default value is true. If the value is false, the logs are logged a human friendly text format.",
       "default": true
     },
+    "log_file": {
+      "type": "string",
+      "format": "file-path",
+      "description": "The path where to write the logs. If not specified the logs are only written to stdout, if specified the logs are written to the file in addition to stdout."
+    },
+    "log_file_level": {
+      "type": "string",
+      "enum": ["debug", "info", "warning", "error", "fatal", "panic"],
+      "description": "The log level to use in the file output. The log level is used to control the verbosity of the logs . The default value is 'warning'.",
+      "default": "info"
+    },
     "shutdown_delay": {
       "type": "string",
       "duration": {

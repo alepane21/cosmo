@@ -13,6 +13,8 @@ playground_enabled: true
 playground_path: "/"
 introspection_enabled: true
 json_log: true
+log_file: "test.log"
+log_file_level: "warning"
 shutdown_delay: 15s
 grace_period: 20s
 poll_interval: 10s

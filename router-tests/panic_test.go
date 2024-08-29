@@ -6,6 +6,7 @@ import (
 	"github.com/wundergraph/cosmo/router-tests/testenv"
 	"github.com/wundergraph/cosmo/router/core"
 	"github.com/wundergraph/cosmo/router/pkg/config"
+	"github.com/wundergraph/cosmo/router/pkg/logging"
 	"math"
 	"net/http"
 	"testing"
@@ -36,6 +37,7 @@ func (m MyPanicModule) Module() core.ModuleInfo {
 func TestEnginePanic(t *testing.T) {
 
 	t.Run("Router is still responsiveness even when panic count is greater than MaxConcurrentResolvers", func(t *testing.T) {
+		logger, observedLogs := logging.NewObserver()
 		testenv.Run(t, &testenv.Config{
 			NoRetryClient: true,
 			RouterOptions: []core.Option{
@@ -46,6 +48,7 @@ func TestEnginePanic(t *testing.T) {
 				}),
 				core.WithSubgraphRetryOptions(false, 0, 0, 0),
 			},
+			Logger: logger,
 		}, func(t *testing.T, xEnv *testenv.Environment) {
 			res, err := xEnv.MakeGraphQLRequest(testenv.GraphQLRequest{
 				Query:         `query MyQuery { employees { id } }`,
@@ -62,10 +65,13 @@ func TestEnginePanic(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, 500, res.Response.StatusCode)
+
+			require.Equal(t, 2, observedLogs.FilterMessage("[Recovery from panic]").Len())
 		})
 	})
 
 	t.Run("Router is still responsiveness even when panic count is greater than ParseKitPoolSize", func(t *testing.T) {
+		logger, observedLogs := logging.NewObserver()
 		testenv.Run(t, &testenv.Config{
 			NoRetryClient: true,
 			RouterOptions: []core.Option{
@@ -76,6 +82,7 @@ func TestEnginePanic(t *testing.T) {
 				}),
 				core.WithSubgraphRetryOptions(false, 0, 0, 0),
 			},
+			Logger: logger,
 		}, func(t *testing.T, xEnv *testenv.Environment) {
 			res, err := xEnv.MakeGraphQLRequest(testenv.GraphQLRequest{
 				Query:         `query MyQuery { employees { id } }`,
@@ -92,6 +99,8 @@ func TestEnginePanic(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, 500, res.Response.StatusCode)
+
+			require.Equal(t, 2, observedLogs.FilterMessage("[Recovery from panic]").Len())
 		})
 	})
 }

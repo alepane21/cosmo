@@ -123,6 +123,7 @@ type Config struct {
 	PrometheusRegistry                 *prometheus.Registry
 	ShutdownDelay                      time.Duration
 	NoRetryClient                      bool
+	Logger                             *zap.Logger
 }
 
 type SubgraphsConfig struct {
@@ -763,6 +764,11 @@ func configureRouter(listenerAddr string, testConfig *Config, routerConfig *node
 		}
 		routerOpts = append(routerOpts, core.WithWebSocketConfiguration(wsConfig))
 	}
+
+	if testConfig.Logger != nil {
+		routerOpts = append(routerOpts, core.WithLogger(testConfig.Logger))
+	}
+
 	return core.NewRouter(routerOpts...)
 }
 

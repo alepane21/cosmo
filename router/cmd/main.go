@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/wundergraph/cosmo/router/internal/profile"
 )
@@ -43,16 +44,7 @@ func Main() {
 	)
 	defer stop()
 
-	logLevel, err := logging.ZapLogLevelFromString(result.Config.LogLevel)
-	if err != nil {
-		log.Fatal("Could not parse log level", zap.Error(err))
-	}
-
-	logger := logging.New(!result.Config.JSONLog, result.Config.LogLevel == "debug", logLevel).
-		With(
-			zap.String("component", "@wundergraph/router"),
-			zap.String("service_version", core.Version),
-		)
+	logger := NewLoggerFromConfig(&result.Config)
 
 	if *configPathFlag != "" {
 		logger.Info(
@@ -107,4 +99,28 @@ func Main() {
 
 	logger.Debug("Router exiting")
 	os.Exit(0)
+}
+
+func NewLoggerFromConfig(config *config.Config) *zap.Logger {
+	var (
+		err          error
+		logLevel     zapcore.Level
+		logFileLevel zapcore.Level
+	)
+
+	logLevel, err = logging.ZapLogLevelFromString(config.LogLevel)
+	if err != nil {
+		log.Fatal("Could not parse log level", zap.Error(err))
+	}
+
+	logFileLevel, err = logging.ZapLogLevelFromString(config.LogFileLevel)
+	if err != nil {
+		log.Fatal("Could not parse log file level", zap.Error(err))
+	}
+
+	return logging.New(!config.JSONLog, config.LogLevel == "debug", logLevel, config.LogFile, logFileLevel).
+		With(
+			zap.String("component", "@wundergraph/router"),
+			zap.String("service_version", core.Version),
+		)
 }
